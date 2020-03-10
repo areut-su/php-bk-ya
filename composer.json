@@ -1,0 +1,27 @@
+{
+  "name": "areut/php-bk-ya",
+  "description": "Backup DB in YaDisk",
+  "minimum-stability": "dev",
+  "license": "MIT",
+  "type": "project",
+  "require": {
+    "guzzlehttp/guzzle": "~6.5.1",
+    "php": "~7.0"
+  },
+  "config": {
+    "vendor-dir": "lib",
+    "platform": {
+      "php": "7.0.14"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~6.5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "areutBkYa\\": "src/",
+      "areutBkYaTest\\": "test/"
+    }
+  }
+}
+

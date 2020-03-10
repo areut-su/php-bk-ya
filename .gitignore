@@ -1,0 +1,8 @@
+# Created by .ignore support plugin (hsz.mobi).gitignore.
+/lib/
+/config_local.php
+/readme.txt
+/test/config_local.php
+/src/DateYa.php
+/test/outputfile.sql.gz
+/outputfile.sql.gz
