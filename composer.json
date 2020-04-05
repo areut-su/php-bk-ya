@@ -15,12 +15,12 @@
     }
   },
   "require-dev": {
-    "phpunit/phpunit": "~6.5.0"
+    "phpunit/phpunit": "~6"
   },
   "autoload": {
     "psr-4": {
       "areutBkYa\\": "src/",
-      "areutBkYaTest\\": "test/"
+      "areutBkYaTest\\": "tests/"
     }
   }
 }

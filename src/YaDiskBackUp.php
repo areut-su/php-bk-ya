@@ -10,7 +10,10 @@ class YaDiskBackUp {
 	const FILE_MONTH = 'month';
 //	public $dumpTamplate = "mysqldump -u {{user}} -p{{password}} {{db_name}} | gzip > outputfile.sql.gz";
 	public static $file_config = 'config_local.php';
-	public $dump_template = "mysqldump -u {{user}} -p{{password}} {{db_name}} > {{dumpName}}  2>&3 &";
+	public $file_password_db = 'db.cnf';
+//	public $dump_template = "mysqldump --user={{user}} --password='{{password}}' {{db_name}} > {{dumpName}}";
+	public $dump_template = "mysqldump --defaults-extra-file={{file_password_db}} {{db_name}} | gzip > {{dumpName}} ";
+	public $template_config = "echo -e '[mysqldump]\n user = {{user}}\n password = \"{{password}}\"\n' >{{file_password_db}}";
 	private $dump_name = "outputfile.sql.gz";
 	private $db_name;
 	private $user;
@@ -18,6 +21,7 @@ class YaDiskBackUp {
 	/**
 	 * @var YaDisk
 	 */
+
 	private $yaDisk;
 
 	/**
@@ -108,9 +112,27 @@ class YaDiskBackUp {
 	 * @return array
 	 */
 	public function makeDump() {
-		$output = [];
-		exec( $this->getDumpTamplate(), $output, $return_var );
+		$output     = [];
+		$return_var = '';
+		if ( file_exists( $this->file_password_db ) ) {
+			echo " file $this->file_password_db  found" . PHP_EOL;
+		} else {
+			print_r( exec( $this->getDumpTamplateCnf(), $output, $return_var ) );
 
+		}
+		echo "Create dum start" . PHP_EOL;
+		print_r( exec( $this->getDumpTamplateDb(), $output, $return_var ) );
+
+
+		echo 'Dump Size:' . filesize( $this->dump_name );
+		echo PHP_EOL;
+
+		if ( ! file_exists( $this->dump_name ) || filesize( $this->dump_name ) < 500 ) {
+//			print_r( $output );
+			$this->rmLocalDump();
+			die( 'Dump file name:' . $this->dump_name . ' not create or less 100b' . PHP_EOL );
+		}
+		echo "Dump Name:" . $this->dump_name . PHP_EOL;
 		if ( isset( $output ) ) {
 
 			if ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' ) {
@@ -121,24 +143,44 @@ class YaDiskBackUp {
 				}
 			}
 
+
 			return $output2;
 		}
 
+
 		return $output;
+	}
+
+	public function getDumpTamplateCnf(): string {
+		$search  = [ 'user', 'password', 'file_password_db' ];
+		$replace = [ $this->user, $this->password, $this->file_password_db ];
+
+		return $this->getDumpTamplate( $search, $replace, $this->template_config );
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getDumpTamplate(): string {
-		$search  = array( 'db_name', 'user', 'password', 'dumpName' );
-		$search  = array_map( function ( $name ) {
+	public function getDumpTamplate( $search, $replace, $template ): string {
+
+		$search = array_map( function ( $name ) {
 			return '{{' . $name . '}}';
 		}, $search );
-		$replace = array( $this->db_name, $this->user, $this->password, $this->dump_name );
 
-		return str_replace( $search, $replace, $this->dump_template );
+		return str_replace( $search, $replace, $template );
 
+	}
+
+	public function getDumpTamplateDb(): string {
+		$search  = [ 'db_name', 'file_password_db', 'dumpName' ];
+		$replace = [ $this->db_name, $this->file_password_db, $this->dump_name ];
+
+		return $this->getDumpTamplate( $search, $replace, $this->dump_template );
+	}
+
+	public function rmLocalDump() {
+		exec( "rm $this->dump_name" );
+		echo "rm $this->dump_name";
 	}
 
 	/**
@@ -166,7 +208,7 @@ class YaDiskBackUp {
 				$couner ++;
 
 			} else {
-				echo "Файл не переименован $fileOld --> $fileNew";
+				echo "Err Rename: $fileOld <!!!!> $fileNew";
 				echo PHP_EOL;
 			}
 
@@ -246,4 +288,3 @@ class YaDiskBackUp {
 
 
 }
-
